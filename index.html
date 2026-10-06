@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova Scientific Calculator</title>
+
+<style>
+/* =========================
+   RESET
+========================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    overflow-x:hidden;
+    color:white;
+
+    background:
+        radial-gradient(circle at 10% 20%, #172554, transparent 35%),
+        radial-gradient(circle at 90% 80%, #581c87, transparent 35%),
+        #020617;
+}
+
+/* =========================
+   ANIMATED BACKGROUND
+========================= */
+.bg{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    z-index:-1;
+}
+
+.bg span{
+    position:absolute;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:rgba(0,255,255,.08);
+    filter:blur(3px);
+    animation:float 10s infinite ease-in-out;
+}
+
+.bg span:nth-child(1){
+    left:5%;
+    top:10%;
+}
+
+.bg span:nth-child(2){
+    right:10%;
+    top:20%;
+    animation-delay:2s;
+}
+
+.bg span:nth-child(3){
+    left:20%;
+    bottom:10%;
+    animation-delay:4s;
+}
+
+.bg span:nth-child(4){
+    right:20%;
+    bottom:15%;
+    animation-delay:6s;
+}
+
+@keyframes float{
+    0%,100%{
+        transform:translate(0,0) scale(1);
+    }
+    50%{
+        transform:translate(70px,-50px) scale(1.5);
+    }
+}
+
+/* =========================
+   CALCULATOR
+========================= */
+.calculator{
+    width:100%;
+    max-width:480px;
+    padding:22px;
+    border-radius:30px;
+
+    background:rgba(15,23,42,.78);
+    border:1px solid rgba(255,255,255,.12);
+
+    backdrop-filter:blur(25px);
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,.6),
+        inset 0 1px rgba(255,255,255,.1);
+
+    animation:appear .8s ease;
+}
+
+@keyframes appear{
+    from{
+        opacity:0;
+        transform:translateY(50px) scale(.9);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+/* =========================
+   HEADER
+========================= */
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.logo h1{
+    font-size:28px;
+
+    background:linear-gradient(
+        90deg,
+        #00ffff,
+        #8b5cf6,
+        #ff4ecd
+    );
+
+    -webkit-background-clip:text;
+    color:transparent;
+}
+
+.logo p{
+    font-size:12px;
+    color:#94a3b8;
+    margin-top:4px;
+}
+
+.mode{
+    padding:9px 14px;
+    border:0;
+    border-radius:12px;
+    color:#00ffff;
+    background:rgba(0,255,255,.12);
+    cursor:pointer;
+}
+
+/* =========================
+   DISPLAY
+========================= */
+.display-box{
+    min-height:135px;
+    padding:18px;
+    border-radius:20px;
+    margin-bottom:15px;
+
+    background:rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.08);
+
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+
+    overflow:hidden;
+}
+
+.history{
+    text-align:right;
+    color:#64748b;
+    font-size:14px;
+    min-height:20px;
+    overflow-x:auto;
+}
+
+.display{
+    text-align:right;
+    font-size:clamp(30px,8vw,46px);
+    font-weight:bold;
+    margin-top:8px;
+    white-space:nowrap;
+    overflow-x:auto;
+}
+
+/* =========================
+   SCIENTIFIC BUTTONS
+========================= */
+.scientific{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.scientific button{
+    min-height:42px;
+    font-size:13px;
+    color:#c4b5fd;
+    background:rgba(139,92,246,.15);
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:9px;
+}
+
+button{
+    min-height:58px;
+    border:0;
+    border-radius:17px;
+
+    color:white;
+    background:rgba(255,255,255,.07);
+
+    font-size:18px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:
+        transform .15s,
+        background .25s,
+        box-shadow .25s;
+}
+
+button:hover{
+    transform:translateY(-3px);
+    background:rgba(255,255,255,.15);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.3),
+        0 0 18px rgba(0,255,255,.15);
+}
+
+button:active{
+    transform:scale(.88);
+}
+
+/* OPERATORS */
+.operator{
+    color:#00eaff;
+    background:rgba(0,210,255,.15);
+}
+
+.operator:hover{
+    background:rgba(0,210,255,.3);
+}
+
+/* DANGER */
+.danger{
+    color:#ff6b8a;
+    background:rgba(255,60,100,.15);
+}
+
+/* EQUAL */
+.equals{
+    grid-column:span 2;
+
+    background:
+        linear-gradient(
+            135deg,
+            #06b6d4,
+            #7c3aed
+        );
+
+    box-shadow:
+        0 0 25px rgba(124,58,237,.35);
+}
+
+.equals:hover{
+    box-shadow:
+        0 0 35px rgba(0,255,255,.45);
+}
+
+/* ZERO */
+.zero{
+    grid-column:span 2;
+}
+
+/* =========================
+   HISTORY
+========================= */
+.history-panel{
+    margin-top:20px;
+    padding-top:15px;
+    border-top:1px solid rgba(255,255,255,.08);
+}
+
+.history-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.history-header h2{
+    font-size:16px;
+}
+
+.clear-history{
+    min-height:auto;
+    padding:6px 10px;
+    font-size:12px;
+    border-radius:8px;
+}
+
+#historyList{
+    max-height:140px;
+    overflow-y:auto;
+    margin-top:10px;
+}
+
+.history-item{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    margin-bottom:6px;
+    border-radius:10px;
+    background:rgba(255,255,255,.05);
+    font-size:13px;
+    cursor:pointer;
+}
+
+.history-item:hover{
+    background:rgba(255,255,255,.12);
+}
+
+.empty{
+    color:#64748b;
+    text-align:center;
+    font-size:13px;
+    padding:10px;
+}
+
+/* =========================
+   RESULT ANIMATION
+========================= */
+.result-animation{
+    animation:resultPop .35s ease;
+}
+
+@keyframes resultPop{
+    0%{
+        transform:scale(.7);
+        opacity:0;
+    }
+    70%{
+        transform:scale(1.08);
+    }
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+/* =========================
+   MOBILE
+========================= */
+@media(max-width:420px){
+
+    .calculator{
+        padding:15px;
+    }
+
+    button{
+        min-height:52px;
+        border-radius:14px;
+    }
+
+    .scientific button{
+        min-height:38px;
+        font-size:11px;
+    }
+
+    .buttons{
+        gap:7px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ANIMATED BACKGROUND -->
+<div class="bg">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+
+<!-- CALCULATOR -->
+<div class="calculator">
+
+    <!-- HEADER -->
+    <div class="header">
+
+        <div class="logo">
+            <h1>✨ Nova</h1>
+            <p>Scientific Calculator</p>
+        </div>
+
+        <button class="mode" id="modeBtn">
+            DEG
+        </button>
+
+    </div>
+
+
+    <!-- DISPLAY -->
+    <div class="display-box">
+
+        <div class="history" id="historyDisplay">
+            0
+        </div>
+
+        <div class="display" id="display">
+            0
+        </div>
+
+    </div>
+
+
+    <!-- SCIENTIFIC -->
+    <div class="scientific">
+
+        <button onclick="scientific('sin')">sin</button>
+
+        <button onclick="scientific('cos')">cos</button>
+
+        <button onclick="scientific('tan')">tan</button>
+
+        <button onclick="scientific('log')">log</button>
+
+        <button onclick="scientific('sqrt')">√</button>
+
+        <button onclick="scientific('pi')">π</button>
+
+        <button onclick="scientific('e')">e</button>
+
+        <button onclick="scientific('square')">x²</button>
+
+        <button onclick="scientific('inverse')">1/x</button>
+
+        <button onclick="scientific('power')">xʸ</button>
+
+    </div>
+
+
+    <!-- MAIN BUTTONS -->
+    <div class="buttons">
+
+        <button class="danger" onclick="clearCalc()">
+            AC
+        </button>
+
+        <button class="danger" onclick="deleteLast()">
+            DEL
+        </button>
+
+        <button onclick="add('(')">
+            (
+        </button>
+
+        <button onclick="add(')')">
+            )
+        </button>
+
+        <button class="operator" onclick="add('/')">
+            ÷
+        </button>
+
+
+        <button onclick="add('7')">7</button>
+        <button onclick="add('8')">8</button>
+        <button onclick="add('9')">9</button>
+
+        <button class="operator" onclick="add('*')">
+            ×
+        </button>
+
+        <button onclick="percent()">
+            %
+        </button>
+
+
+        <button onclick="add('4')">4</button>
+        <button onclick="add('5')">5</button>
+        <button onclick="add('6')">6</button>
+
+        <button class="operator" onclick="add('-')">
+            −
+        </button>
+
+        <button onclick="sign()">
+            ±
+        </button>
+
+
+        <button onclick="add('1')">1</button>
+        <button onclick="add('2')">2</button>
+        <button onclick="add('3')">3</button>
+
+        <button class="operator" onclick="add('+')">
+            +
+        </button>
+
+        <button onclick="useAnswer()">
+            ANS
+        </button>
+
+
+        <button class="zero" onclick="add('0')">
+            0
+        </button>
+
+        <button onclick="add('.')">
+            .
+        </button>
+
+        <button class="equals" onclick="calculate()">
+            =
+        </button>
+
+    </div>
+
+
+    <!-- HISTORY -->
+    <div class="history-panel">
+
+        <div class="history-header">
+
+            <h2>📜 History</h2>
+
+            <button
+                class="clear-history"
+                onclick="clearHistory()">
+                Clear
+            </button>
+
+        </div>
+
+        <div id="historyList">
+
+            <p class="empty">
+                No calculations yet
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   VARIABLES
+========================= */
+
+let expression = "";
+
+let answer = 0;
+
+let degreeMode = true;
+
+let history = [];
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const display =
+    document.getElementById("display");
+
+const historyDisplay =
+    document.getElementById("historyDisplay");
+
+const historyList =
+    document.getElementById("historyList");
+
+const modeBtn =
+    document.getElementById("modeBtn");
+
+
+/* =========================
+   UPDATE DISPLAY
+========================= */
+
+function update(){
+
+    display.textContent =
+        expression || "0";
+}
+
+
+/* =========================
+   ADD VALUE
+========================= */
+
+function add(value){
+
+    if(expression === "Error"){
+        expression = "";
+    }
+
+    expression += value;
+
+    update();
+}
+
+
+/* =========================
+   CLEAR
+========================= */
+
+function clearCalc(){
+
+    expression = "";
+
+    historyDisplay.textContent = "0";
+
+    update();
+}
+
+
+/* =========================
+   DELETE
+========================= */
+
+function deleteLast(){
+
+    expression =
+        expression.slice(0,-1);
+
+    update();
+}
+
+
+/* =========================
+   DEG / RAD
+========================= */
+
+modeBtn.onclick = function(){
+
+    degreeMode = !degreeMode;
+
+    modeBtn.textContent =
+        degreeMode ? "DEG" : "RAD";
+};
+
+
+/* =========================
+   SCIENTIFIC FUNCTIONS
+========================= */
+
+function scientific(type){
+
+    let value =
+        parseFloat(expression);
+
+    let result;
+
+
+    if(type === "pi"){
+
+        expression =
+            Math.PI.toString();
+
+        update();
+
+        return;
+    }
+
+
+    if(type === "e"){
+
+        expression =
+            Math.E.toString();
+
+        update();
+
+        return;
+    }
+
+
+    if(isNaN(value)) return;
+
+
+    switch(type){
+
+        case "sin":
+
+            result = degreeMode
+                ? Math.sin(value*Math.PI/180)
+                : Math.sin(value);
+
+            break;
+
+
+        case "cos":
+
+            result = degreeMode
+                ? Math.cos(value*Math.PI/180)
+                : Math.cos(value);
+
+            break;
+
+
+        case "tan":
+
+            result = degreeMode
+                ? Math.tan(value*Math.PI/180)
+                : Math.tan(value);
+
+            break;
+
+
+        case "log":
+
+            result = Math.log10(value);
+
+            break;
+
+
+        case "sqrt":
+
+            result = Math.sqrt(value);
+
+            break;
+
+
+        case "square":
+
+            result = value ** 2;
+
+            break;
+
+
+        case "inverse":
+
+            result = 1/value;
+
+            break;
+
+
+        case "power":
+
+            expression += "^";
+
+            update();
+
+            return;
+    }
+
+
+    expression =
+        format(result);
+
+    animate();
+}
+
+
+/* =========================
+   CALCULATE
+========================= */
+
+function calculate(){
+
+    if(!expression) return;
+
+
+    try{
+
+        let original =
+            expression;
+
+
+        let safe =
+            expression
+            .replace(/×/g,"*")
+            .replace(/÷/g,"/")
+            .replace(/−/g,"-")
+            .replace(/\^/g,"**");
+
+
+        let result =
+            Function(
+                '"use strict"; return (' +
+                safe +
+                ')'
+            )();
+
+
+        if(!Number.isFinite(result)){
+
+            throw new Error();
+
+        }
+
+
+        result =
+            format(result);
+
+
+        historyDisplay.textContent =
+            original + " =";
+
+
+        expression =
+            result;
+
+
+        answer =
+            result;
+
+
+        addHistory(
+            original,
+            result
+        );
+
+
+        animate();
+
+    }
+
+    catch{
+
+        expression = "Error";
+
+        update();
+
+    }
+}
+
+
+/* =========================
+   FORMAT
+========================= */
+
+function format(number){
+
+    if(!Number.isFinite(number)){
+        return "Error";
+    }
+
+    if(Math.abs(number) < 0.0000000001){
+        number = 0;
+    }
+
+    return Number(
+        number.toPrecision(12)
+    ).toString();
+}
+
+
+/* =========================
+   ANIMATION
+========================= */
+
+function animate(){
+
+    display.classList.remove(
+        "result-animation"
+    );
+
+    void display.offsetWidth;
+
+    display.classList.add(
+        "result-animation"
+    );
+
+    update();
+}
+
+
+/* =========================
+   PERCENT
+========================= */
+
+function percent(){
+
+    let value =
+        parseFloat(expression);
+
+    if(!isNaN(value)){
+
+        expression =
+            format(value/100);
+
+        update();
+    }
+}
+
+
+/* =========================
+   SIGN
+========================= */
+
+function sign(){
+
+    if(!expression) return;
+
+
+    if(expression.startsWith("-")){
+
+        expression =
+            expression.substring(1);
+
+    }
+    else{
+
+        expression =
+            "-" + expression;
+
+    }
+
+    update();
+}
+
+
+/* =========================
+   ANSWER
+========================= */
+
+function useAnswer(){
+
+    expression += answer;
+
+    update();
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+function addHistory(
+    calculation,
+    result
+){
+
+    history.unshift({
+
+        calculation:
+            calculation,
+
+        result:
+            result
+
+    });
+
+
+    if(history.length > 10){
+
+        history.pop();
+
+    }
+
+
+    renderHistory();
+}
+
+
+function renderHistory(){
+
+    if(history.length === 0){
+
+        historyList.innerHTML =
+            `<p class="empty">
+                No calculations yet
+             </p>`;
+
+        return;
+    }
+
+
+    historyList.innerHTML =
+        history.map(
+            (item,index)=>`
+
+            <div
+                class="history-item"
+                onclick="loadHistory(${index})">
+
+                <span>
+                    ${item.calculation}
+                </span>
+
+                <strong>
+                    ${item.result}
+                </strong>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   LOAD HISTORY
+========================= */
+
+function loadHistory(index){
+
+    expression =
+        history[index].result;
+
+    update();
+}
+
+
+/* =========================
+   CLEAR HISTORY
+========================= */
+
+function clearHistory(){
+
+    history = [];
+
+    renderHistory();
+}
+
+
+/* =========================
+   KEYBOARD
+========================= */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        let key =
+            event.key;
+
+
+        if(
+            /[0-9+\-*/().]/.test(key)
+        ){
+
+            add(key);
+
+        }
+
+
+        else if(key === "Enter"){
+
+            calculate();
+
+        }
+
+
+        else if(key === "Backspace"){
+
+            deleteLast();
+
+        }
+
+
+        else if(key === "Escape"){
+
+            clearCalc();
+
+        }
+
+
+        else if(key === "%"){
+
+            percent();
+
+        }
+
+    }
+);
+
+
+/* =========================
+   START
+========================= */
+
+update();
+
+</script>
+
+</body>
+</html>
